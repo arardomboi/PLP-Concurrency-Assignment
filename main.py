@@ -52,11 +52,26 @@ def worker(work_queue: queue.Queue, metrics: dict, metrics_lock) -> None:
             # Must run on every .get(), including the poison pill and errors
             work_queue.task_done()
 
-def parseLine(line):
+def parseLine(line): #parses line and updates metrics dict
     """Parse a single line from a log file and return relevant metrics."""
     pattern = r'\[([^\]]+)\]|"([^"]+)"|(\S+)' #regex converting str into list 
     fields = [match[0] or match[1] or match[2] for match in re.findall(pattern, line)] #the actual list of fields
 
+def report(metrics, top_k):
+    """Prints a summary of the aggregated metrics."""
+    print(f"Files Processed: {metrics['files_processed']}")
+    print(f"Total Lines Parsed: {metrics['total_lines_parsed']}")
+    print(f"Total Bandwidth: {metrics['total_bandwidth'] / 1_000_000:.2f} MB")
+    print("Status Code Breakdown:")
+    for code, count in sorted(metrics["status_code_freq"].items()):
+        print(f"  {code}: {count}")
+    print(f"Top {top_k} Client IPs:")
+    top_ips = sorted(metrics["client_ips_freq"].items(), key=lambda x: x[1], reverse=True)[:top_k]
+    for ip, count in top_ips:
+        print(f"  {ip}: {count}")
+
+def main(root_dir: str, num_workers: int, top_k: int) -> None: #main function thatll be called
+    pass
 
 """
 As above, each log entry has 7 fields:
